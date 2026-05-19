@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSVP – Logan & Becky's Baby Shower</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root {
+    --blush: #f9c6d0;
+    --rose: #e8758a;
+    --deep-rose: #c94f6a;
+    --petal: #fde8ed;
+    --cream: #fff8f9;
+    --gold: #d4a0a8;
+    --text: #5a2d3a;
+    --soft: #f0b8c4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--petal);
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Petals */
+  .petals-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .petal {
+    position: absolute;
+    background: radial-gradient(ellipse at 40% 30%, #ffd6e0, #f9a8bb88);
+    border-radius: 50% 0 50% 0;
+    opacity: 0;
+    animation: fall linear infinite;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-60px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* Back link */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--rose); font-size: 1rem; text-decoration: none;
+    font-style: italic; margin-bottom: 24px;
+    transition: transform 0.2s;
+  }
+  .back-link:hover { transform: translateX(-4px); }
+
+  /* Header */
+  .rsvp-header { text-align: center; margin-bottom: 32px; animation: fadeUp 0.8s ease both; }
+  .rsvp-header .bow { font-size: 2.5rem; display: block; margin-bottom: 8px; animation: swingBow 3s ease-in-out infinite; transform-origin: center top; }
+  @keyframes swingBow { 0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)} }
+  .rsvp-header h1 { font-family: 'Great Vibes', cursive; font-size: clamp(2.8rem,8vw,4.5rem); color: var(--deep-rose); line-height: 1.1; }
+  .rsvp-header p  { font-size: 1.1rem; color: var(--gold); font-style: italic; margin-top: 8px; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)} }
+
+  /* Card */
+  .card {
+    background: linear-gradient(160deg, #fff0f4, #ffe4ed 60%, #ffd6e2);
+    border: 2px solid #f0b8c4;
+    border-radius: 28px;
+    padding: 44px 40px;
+    box-shadow: 0 8px 40px #e8758a20, 0 2px 0 #fff inset;
+    animation: fadeUp 0.8s ease 0.1s both;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--rose); margin-bottom: 8px;
+  }
+
+  /* Form field */
+  .field { margin-bottom: 22px; }
+  .field label {
+    display: block; font-size: 0.82rem; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--rose); margin-bottom: 8px;
+  }
+  .field input, .field select {
+    width: 100%; padding: 14px 18px;
+    background: rgba(255,255,255,0.8);
+    border: 1.5px solid #f0b8c4; border-radius: 14px;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
+    color: var(--text); outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px #e8758a1a;
+  }
+  .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23e8758a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+
+  /* Radio group */
+  .radio-group { display: flex; gap: 14px; flex-wrap: wrap; }
+  .radio-option {
+    flex: 1; min-width: 140px;
+    position: relative;
+  }
+  .radio-option input[type="radio"] { position: absolute; opacity: 0; width: 0; }
+  .radio-option label {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 16px 20px; border-radius: 16px;
+    border: 2px solid #f0b8c4;
+    background: rgba(255,255,255,0.7);
+    cursor: pointer; font-size: 1rem;
+    text-transform: none; letter-spacing: 0.5px;
+    font-family: 'Playfair Display', serif;
+    transition: all 0.25s;
+  }
+  .radio-option input:checked + label {
+    border-color: var(--rose);
+    background: linear-gradient(135deg, #ffe0ea, #ffd0df);
+    box-shadow: 0 4px 16px #e8758a22;
+    color: var(--deep-rose);
+  }
+  .radio-option label:hover { border-color: var(--rose); }
+
+  /* Divider */
+  .divider { display: flex; align-items: center; gap: 14px; margin: 26px 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--soft), transparent); }
+  .divider span { font-size: 1.2rem; }
+
+  /* Attendee card */
+  .attendee-block {
+    background: rgba(255,255,255,0.6);
+    border: 1.5px solid #f0b8c4; border-radius: 20px;
+    padding: 24px 22px; margin-bottom: 20px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .attendee-block h3 {
+    font-family: 'Great Vibes', cursive; font-size: 1.8rem;
+    color: var(--rose); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .att-grid { display: grid; grid-template-columns: 1fr 2fr 2fr; gap: 14px; }
+
+  /* Qty selector */
+  .qty-control { display: flex; align-items: center; gap: 12px; }
+  .qty-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--rose), var(--deep-rose));
+    color: white; border: none; font-size: 1.3rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .qty-btn:hover { transform: scale(1.12); box-shadow: 0 4px 12px #e8758a44; }
+  .qty-display {
+    font-family: 'Playfair Display', serif; font-size: 2rem;
+    font-weight: 700; color: var(--deep-rose); min-width: 36px; text-align: center;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%; padding: 18px; margin-top: 10px;
+    background: linear-gradient(135deg, var(--rose), var(--deep-rose));
+    color: white; border: none; border-radius: 60px;
+    font-family: 'Playfair Display', serif; font-size: 1.3rem;
+    font-style: italic; cursor: pointer; letter-spacing: 1px;
+    box-shadow: 0 8px 28px #e8758a44;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .submit-btn::before {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 14px 36px #e8758a55; }
+  .submit-btn:hover::before { left: 100%; }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* Status messages */
+  .status-msg {
+    display: none; text-align: center;
+    padding: 18px 24px; border-radius: 16px; margin-top: 18px;
+    font-size: 1.05rem;
+  }
+  .status-success { display: block; background: #d4edda; border: 1.5px solid #a8d5b5; color: #2d6a4f; }
+  .status-error   { display: block; background: #fde8ee; border: 1.5px solid #f0b8c4; color: var(--deep-rose); }
+
+  /* Success overlay */
+  .success-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(253,232,237,0.97); z-index: 100;
+    align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 30px;
+    animation: fadeUp 0.6s ease;
+  }
+  .success-overlay.show { display: flex; }
+  .success-overlay .big-icon { font-size: 5rem; margin-bottom: 20px; animation: heartPulse 1.5s ease-in-out infinite; }
+  @keyframes heartPulse { 0%,100%{transform:scale(1)}50%{transform:scale(1.2)} }
+  .success-overlay h2 { font-family:'Great Vibes',cursive; font-size: 3.5rem; color: var(--deep-rose); margin-bottom: 14px; }
+  .success-overlay p { font-size: 1.2rem; color: var(--gold); font-style: italic; max-width: 400px; }
+  .success-overlay .back-home { margin-top: 28px; display: inline-block; color: var(--rose); text-decoration: none; font-family:'Playfair Display',serif; font-size: 1rem; font-style: italic; border-bottom: 1px solid var(--rose); }
+
+  /* Hidden section */
+  .hidden { display: none; }
+
+  @media (max-width: 600px) {
+    .card { padding: 28px 16px; }
+    .att-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="petals-bg" id="petalsBg"></div>
+
+<div class="wrapper">
+
+  <a href="index.html" class="back-link">← Back to Invitation</a>
+
+  <div class="rsvp-header">
+    <span class="bow">🎀</span>
+    <h1>RSVP</h1>
+    <p>Logan & Becky's Baby Shower · September 5, 2026</p>
+  </div>
+
+  <div class="card">
+
+    <!-- STEP 1: Attendance choice -->
+    <div class="field">
+      <label>Will you be joining us? 🌸</label>
+      <div class="radio-group">
+        <div class="radio-option">
+          <input type="radio" name="attendance" id="att-yes" value="attending">
+          <label for="att-yes">🎉 Attending</label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" name="attendance" id="att-no" value="cant-make-it">
+          <label for="att-no">💌 Can't Make It</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2a: Can't make it — just name -->
+    <div id="section-cantmake" class="hidden">
+      <div class="divider"><span>💗</span></div>
+      <p class="section-label">We'll miss you! Please leave your name</p>
+      <div class="att-grid" style="grid-template-columns:1fr 2fr 2fr;">
+        <div class="field"><label>Title</label><select id="nm-title"><option value="">—</option><option>Mr.</option><option>Mrs.</option><option>Ms.</option><option>Dr.</option><option>Mx.</option></select></div>
+        <div class="field"><label>First Name</label><input type="text" id="nm-first" placeholder="First name"></div>
+        <div class="field"><label>Last Name</label> <input type="text" id="nm-last" placeholder="Last name"></div>
+      </div>
+      <div class="field"><label>A message for Logan & Becky (optional)</label><input type="text" id="nm-msg" placeholder="Wishing you all the best!"></div>
+      <button class="submit-btn" id="btn-cantmake">💌 Send My Regrets</button>
+      <div class="status-msg" id="msg-cantmake"></div>
+    </div>
+
+    <!-- STEP 2b: Attending — how many -->
+    <div id="section-attending" class="hidden">
+      <div class="divider"><span>🌸</span></div>
+      <p class="section-label" style="text-align:center;margin-bottom:16px;">How many guests are attending?</p>
+      <div style="display:flex;justify-content:center;margin-bottom:28px;">
+        <div class="qty-control">
+          <button class="qty-btn" id="qty-minus">−</button>
+          <div class="qty-display" id="qty-num">1</div>
+          <button class="qty-btn" id="qty-plus">+</button>
+        </div>
+      </div>
+
+      <!-- Dynamic attendee forms -->
+      <div id="attendee-forms"></div>
+
+      <button class="submit-btn" id="btn-attending">🎀 Send My RSVP</button>
+      <div class="status-msg" id="msg-attending"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="successOverlay">
+  <div class="big-icon" id="successIcon">🎀</div>
+  <h2 id="successTitle">We can't wait!</h2>
+  <p id="successMsg">Your RSVP has been received. See you on September 5th!</p>
+  <a href="index.html" class="back-home">← Back to Invitation</a>
+</div>
+
+<script>
+  // ── EmailJS init — replace with your actual IDs
+  emailjs.init('fdg2Pcb9k1jKY57VS'); // ← replace with your EmailJS public key
+
+  // ── Petals
+  const bg = document.getElementById('petalsBg');
+  for (let i = 0; i < 22; i++) {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.cssText = `left:${Math.random()*100}%;width:${12+Math.random()*16}px;height:${14+Math.random()*18}px;animation-duration:${7+Math.random()*10}s;animation-delay:${Math.random()*12}s;`;
+    bg.appendChild(p);
+  }
+
+  // ── Attendance radio
+  document.querySelectorAll('input[name="attendance"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('section-cantmake').classList.toggle('hidden', r.value !== 'cant-make-it');
+      document.getElementById('section-attending').classList.toggle('hidden', r.value !== 'attending');
+      if (r.value === 'attending') renderAttendees(qty);
+    });
+  });
+
+  // ── Quantity
+  let qty = 1;
+  document.getElementById('qty-minus').addEventListener('click', () => { if (qty > 1) { qty--; document.getElementById('qty-num').textContent = qty; renderAttendees(qty); } });
+  document.getElementById('qty-plus').addEventListener('click', () => { if (qty < 20) { qty++; document.getElementById('qty-num').textContent = qty; renderAttendees(qty); } });
+
+  const titles = ['', 'Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Mx.'];
+  function titleOptions() {
+    return titles.map(t => `<option value="${t}">${t || '—'}</option>`).join('');
+  }
+
+  function renderAttendees(n) {
+    const container = document.getElementById('attendee-forms');
+    container.innerHTML = '';
+    for (let i = 1; i <= n; i++) {
+      const ordinal = i === 1 ? '1st' : i === 2 ? '2nd' : i === 3 ? '3rd' : `${i}th`;
+      const block = document.createElement('div');
+      block.className = 'attendee-block';
+      block.style.animationDelay = `${(i-1)*0.08}s`;
+      block.innerHTML = `
+        <h3>🌸 Guest ${ordinal}</h3>
+        <div class="att-grid">
+          <div class="field">
+            <label>Title</label>
+            <select id="g${i}-title">${titleOptions()}</select>
+          </div>
+          <div class="field">
+            <label>First Name *</label>
+            <input type="text" id="g${i}-first" placeholder="First name" required>
+          </div>
+          <div class="field">
+            <label>Last Name *</label>
+            <input type="text" id="g${i}-last" placeholder="Last name" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Address</label>
+          <input type="text" id="g${i}-addr" placeholder="Street address, city, state, ZIP">
+        </div>
+      `;
+      container.appendChild(block);
+    }
+  }
+  renderAttendees(1);
+
+  // ── Submit: Can't make it
+  document.getElementById('btn-cantmake').addEventListener('click', async () => {
+    const first = document.getElementById('nm-first').value.trim();
+    const last  = document.getElementById('nm-last').value.trim();
+    const msg   = document.getElementById('nm-msg').value.trim();
+    const title = document.getElementById('nm-title').value;
+    const msgEl = document.getElementById('msg-cantmake');
+
+    if (!first || !last) { showMsg(msgEl, 'error', 'Please enter your first and last name.'); return; }
+
+    const btn = document.getElementById('btn-cantmake');
+    btn.disabled = true; btn.textContent = 'Sending…';
+
+    const body = `
+RSVP – Can't Make It
+====================
+Name: ${title} ${first} ${last}
+Message: ${msg || '(none)'}
+    `.trim();
+
+    await sendEmail('Logan & Becky\'s Baby Shower RSVP – Regrets', body, btn, msgEl, () => showSuccess(false, `${first} ${last}`));
+  });
+
+  // ── Submit: Attending
+  document.getElementById('btn-attending').addEventListener('click', async () => {
+    const msgEl = document.getElementById('msg-attending');
+    let valid = true;
+    let lines = [`RSVP – Attending (${qty} guest${qty>1?'s':''})\n${'='.repeat(30)}`];
+
+    for (let i = 1; i <= qty; i++) {
+      const first = document.getElementById(`g${i}-first`).value.trim();
+      const last  = document.getElementById(`g${i}-last`).value.trim();
+      const title = document.getElementById(`g${i}-title`).value;
+      const addr  = document.getElementById(`g${i}-addr`).value.trim();
+      if (!first || !last) { valid = false; break; }
+      const ord = i===1?'1st':i===2?'2nd':i===3?'3rd':`${i}th`;
+      lines.push(`\nGuest ${ord}:\n  Name: ${title} ${first} ${last}\n  Address: ${addr || '—'}`);
+    }
+
+    if (!valid) { showMsg(msgEl, 'error', 'Please fill in the first and last name for every guest.'); return; }
+
+    const btn = document.getElementById('btn-attending');
+    btn.disabled = true; btn.textContent = 'Sending…';
+
+    const g1first = document.getElementById('g1-first').value.trim();
+    const g1last  = document.getElementById('g1-last').value.trim();
+
+    await sendEmail('Logan & Becky\'s Baby Shower RSVP – Attending!', lines.join(''), btn, msgEl, () => showSuccess(true, `${g1first} ${g1last}`, qty));
+  });
+
+  async function sendEmail(subject, body, btn, msgEl, onSuccess) {
+    try {
+      await emailjs.send('service_62rzsct', 'template_rl7gweu', {
+        to_email: 'info@andrenhomes.com',
+        subject:  subject,
+        message:  body
+      });
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      showMsg(msgEl, 'error', 'Oops! Something went wrong. Please try again or email info@andrenhomes.com directly.');
+      btn.disabled = false;
+      btn.textContent = btn.id === 'btn-cantmake' ? '💌 Send My Regrets' : '🎀 Send My RSVP';
+    }
+  }
+
+  function showMsg(el, type, text) {
+    el.className = 'status-msg ' + (type === 'error' ? 'status-error' : 'status-success');
+    el.textContent = text;
+  }
+
+  function showSuccess(attending, name, count) {
+    const overlay = document.getElementById('successOverlay');
+    document.getElementById('successIcon').textContent = attending ? '🎉' : '💌';
+    document.getElementById('successTitle').textContent = attending ? 'See you there!' : 'We\'ll miss you!';
+    document.getElementById('successMsg').textContent = attending
+      ? `Thank you, ${name}! We've received your RSVP for ${count} guest${count>1?'s':''}. Can't wait to celebrate with you on September 5th! 🎀`
+      : `Thank you, ${name}! We're so sorry you can't make it, but we appreciate you letting us know. Logan & Becky send their love! 💗`;
+    overlay.classList.add('show');
+  }
+</script>
+</body>
+</html>
