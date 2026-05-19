@@ -289,7 +289,7 @@
 
 <script>
   // ── EmailJS init — replace with your actual IDs
-  emailjs.init('fdg2Pcb9k1jKY57VS'); // ← replace with your EmailJS public key
+  emailjs.init(fdg2Pcb9k1jKY57VS); // ← replace with your EmailJS public key
 
   // ── Petals
   const bg = document.getElementById('petalsBg');
@@ -405,7 +405,7 @@ Message: ${msg || '(none)'}
 
   async function sendEmail(subject, body, btn, msgEl, onSuccess) {
     try {
-      await emailjs.send('service_62rzsct', 'template_rl7gweu', {
+      await emailjs.send(service_62rzsct, template_rl7gweu, {
         to_email: 'info@andrenhomes.com',
         subject:  subject,
         message:  body
