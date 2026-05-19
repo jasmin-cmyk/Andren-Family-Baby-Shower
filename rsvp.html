@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RSVP – Logan & Becky's Baby Shower</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
-<!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- Web3Forms -->
 <style>
   :root {
     --blush: #f9c6d0;
@@ -288,8 +287,7 @@
 </div>
 
 <script>
-  // ── EmailJS init — replace with your actual IDs
-  emailjs.init(fdg2Pcb9k1jKY57VS); // ← replace with your EmailJS public key
+  const WEB3FORMS_KEY = '52f478c1-6010-4146-b7fa-a233b25f35ce';
 
   // ── Petals
   const bg = document.getElementById('petalsBg');
@@ -353,6 +351,33 @@
   }
   renderAttendees(1);
 
+  // ── Send via Web3Forms
+  async function sendEmail(subject, body, btn, msgEl, onSuccess) {
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject:    subject,
+          from_name:  "Logan & Becky's Baby Shower RSVP",
+          message:    body
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        onSuccess();
+      } else {
+        throw new Error(data.message || 'Submission failed');
+      }
+    } catch (err) {
+      console.error(err);
+      showMsg(msgEl, 'error', 'Oops! Something went wrong. Please try again or email info@andrenhomes.com directly.');
+      btn.disabled = false;
+      btn.textContent = btn.id === 'btn-cantmake' ? '💌 Send My Regrets' : '🎀 Send My RSVP';
+    }
+  }
+
   // ── Submit: Can't make it
   document.getElementById('btn-cantmake').addEventListener('click', async () => {
     const first = document.getElementById('nm-first').value.trim();
@@ -366,14 +391,9 @@
     const btn = document.getElementById('btn-cantmake');
     btn.disabled = true; btn.textContent = 'Sending…';
 
-    const body = `
-RSVP – Can't Make It
-====================
-Name: ${title} ${first} ${last}
-Message: ${msg || '(none)'}
-    `.trim();
+    const body = `RSVP – Can't Make It\n====================\nName: ${title} ${first} ${last}\nMessage: ${msg || '(none)'}`;
 
-    await sendEmail('Logan & Becky\'s Baby Shower RSVP – Regrets', body, btn, msgEl, () => showSuccess(false, `${first} ${last}`));
+    await sendEmail("Logan & Becky's Baby Shower RSVP – Regrets", body, btn, msgEl, () => showSuccess(false, `${first} ${last}`));
   });
 
   // ── Submit: Attending
@@ -400,24 +420,8 @@ Message: ${msg || '(none)'}
     const g1first = document.getElementById('g1-first').value.trim();
     const g1last  = document.getElementById('g1-last').value.trim();
 
-    await sendEmail('Logan & Becky\'s Baby Shower RSVP – Attending!', lines.join(''), btn, msgEl, () => showSuccess(true, `${g1first} ${g1last}`, qty));
+    await sendEmail("Logan & Becky's Baby Shower RSVP – Attending!", lines.join(''), btn, msgEl, () => showSuccess(true, `${g1first} ${g1last}`, qty));
   });
-
-  async function sendEmail(subject, body, btn, msgEl, onSuccess) {
-    try {
-      await emailjs.send(service_62rzsct, template_rl7gweu, {
-        to_email: 'info@andrenhomes.com',
-        subject:  subject,
-        message:  body
-      });
-      onSuccess();
-    } catch (err) {
-      console.error(err);
-      showMsg(msgEl, 'error', 'Oops! Something went wrong. Please try again or email info@andrenhomes.com directly.');
-      btn.disabled = false;
-      btn.textContent = btn.id === 'btn-cantmake' ? '💌 Send My Regrets' : '🎀 Send My RSVP';
-    }
-  }
 
   function showMsg(el, type, text) {
     el.className = 'status-msg ' + (type === 'error' ? 'status-error' : 'status-success');
@@ -427,7 +431,7 @@ Message: ${msg || '(none)'}
   function showSuccess(attending, name, count) {
     const overlay = document.getElementById('successOverlay');
     document.getElementById('successIcon').textContent = attending ? '🎉' : '💌';
-    document.getElementById('successTitle').textContent = attending ? 'See you there!' : 'We\'ll miss you!';
+    document.getElementById('successTitle').textContent = attending ? 'See you there!' : "We'll miss you!";
     document.getElementById('successMsg').textContent = attending
       ? `Thank you, ${name}! We've received your RSVP for ${count} guest${count>1?'s':''}. Can't wait to celebrate with you on September 5th! 🎀`
       : `Thank you, ${name}! We're so sorry you can't make it, but we appreciate you letting us know. Logan & Becky send their love! 💗`;
